@@ -1,3 +1,8 @@
 function App() {
-  return <Pokedex />;
+  return (
+    <div>
+      <h1>Pokédex</h1>
+      <Pokedex />
+    </div>
+  );
 }
