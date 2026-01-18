@@ -1,8 +1,8 @@
 function App() {
   return (
     <div>
-      <h1>Pokédex</h1>
-      <Pokedex />
+      <h1>PokéFight</h1>
+      <Pokegame />
     </div>
   );
 }
