@@ -1,4 +1,5 @@
 const DEFAULT_POKEMON = [
+  { id: 1, name: "Bulbasaur", type: "grass", type2: "poison", level: 15 },
   { id: 4, name: "Charmander", type: "fire", level: 12 },
   { id: 7, name: "Squirtle", type: "water", level: 13 },
   { id: 11, name: "Metapod", type: "bug", level: 14 },
