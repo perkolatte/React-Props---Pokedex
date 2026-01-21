@@ -15,13 +15,14 @@ body {
   margin: 0;
   background: #c9c9c9;
   text-align: center;
-  font-family: "Pokemon RBYG", "Gill Sans", "Gill Sans MT", Calibri,
-    "Trebuchet MS", sans-serif;
+  font-family: "Pokemon RBYG", monospace;
   color: #111;
   --card-text-size: 30px;
   --card-line-height: 0.53;
-  --stats-top: 122px;
+  --stats-top: 120px;
   --hp-top: 49px;
+  --sprite-size: 140px;
+  --char-width: 0.6em;
 }
 
 * {
@@ -32,7 +33,7 @@ h1 {
   margin: 20px 0 8px;
   color: #111;
   font-size: 26px;
-  letter-spacing: 1px;
+  letter-spacing: 0px;
 }
 
 .Pokegame {
@@ -53,8 +54,8 @@ h1 {
   width: 320px;
   aspect-ratio: 10 / 9;
   padding: 0;
-  background: url("card_background.jpeg") center / cover no-repeat;
-  border: none;
+  background: white;
+  border: 2px solid black;
   border-radius: 4px;
   box-shadow: none;
   display: flex;
@@ -62,15 +63,35 @@ h1 {
   gap: 0;
   overflow: hidden;
   position: relative;
+  filter: url(#gbc-colors);
+}
+
+.Pokecard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("card_background_white_hp.png") center / cover no-repeat;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.Pokecard::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  z-index: 100;
 }
 
 .Pokecard img {
-  width: 140px;
-  height: 140px;
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: crisp-edges;
-  filter: url(#gbc-colors);
+  /* Pixelization not needed */
 }
 
 .Pokecard-top {
@@ -81,9 +102,11 @@ h1 {
 .Pokecard-sprite {
   position: absolute;
   left: 0px;
-  top: 0px;
-  width: 120px;
-  height: 120px;
+  top: -3.5px;
+  transform: translateY(-28px);
+  width: var(--sprite-size);
+  height: var(--sprite-size);
+  overflow: hidden;
 }
 
 .Pokecard-summary {
@@ -95,7 +118,7 @@ h1 {
   position: absolute;
   top: 9px;
   right: 30px;
-  max-width: 180px;
+  max-width: 250px;
   font-size: var(--card-text-size);
   line-height: var(--card-line-height);
   text-align: right;
@@ -104,8 +127,8 @@ h1 {
 
 .Pokecard-level {
   position: absolute;
-  top: 17.7px;
-  left: 242px;
+  top: 16.8px;
+  left: 237px;
   width: 30px;
   font-size: var(--card-text-size);
   text-align: left;
@@ -113,7 +136,11 @@ h1 {
 }
 
 .Pokecard-hp {
-  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .Pokecard-hplabel {
@@ -121,11 +148,22 @@ h1 {
 }
 
 .Pokecard-hpbar {
-  display: none;
+  position: absolute;
+  top: 52px;
+  left: 252.75px;
+  transform: translateX(-50%);
+  width: 95px;
+  height: 4.5px;
+  overflow: visible;
+  z-index: 5;
 }
 
 .Pokecard-hpfill {
-  display: none;
+  height: 100%;
+  background: #00ff00;
+  transition: width 0.3s ease;
+
+  box-sizing: border-box;
 }
 
 .Pokecard-hptext {
@@ -135,14 +173,14 @@ h1 {
   width: 78px;
   height: 16px;
   font-size: var(--card-text-size);
-  letter-spacing: 0;
+  letter-spacing: 1px;
 }
 
 .Pokecard-hpcurrent {
   position: absolute;
   top: 0;
   right: 51px;
-  width: 60px;
+  width: 70px;
   text-align: right;
 }
 
@@ -155,15 +193,15 @@ h1 {
 .Pokecard-hpmax {
   position: absolute;
   top: 0;
-  right: -7px;
-  width: 40px;
+  right: -12px;
+  width: 70px;
   text-align: right;
 }
 
 .Pokecard-status {
   position: absolute;
-  top: 82px;
-  right: 32px;
+  top: 80px;
+  right: 39px;
   font-size: var(--card-text-size);
   white-space: nowrap;
   overflow: visible;
@@ -171,11 +209,11 @@ h1 {
 
 .Pokecard-no {
   position: absolute;
-  left: 48px;
-  top: 97.5px;
+  left: 47px;
+  top: 95.85px;
   text-align: left;
   font-size: var(--card-text-size);
-  letter-spacing: 0;
+  letter-spacing: 1px;
   text-transform: none;
   white-space: nowrap;
 }
@@ -210,15 +248,15 @@ h1 {
 
 .Pokecard-meta {
   position: absolute;
-  left: 154px;
+  left: 151px;
   top: var(--stats-top);
   width: 170px;
   height: 120px;
 }
 
-.Pokecard-stat {
-  min-height: 16px;
-}
+/* .Pokecard-stat {
+  min-height: 0px;
+} */
 
 .Pokecard-statlabel {
   display: block;
@@ -279,8 +317,12 @@ h1 {
   position: relative;
 }
 
-.Pokecard-idnoslash {
-  display: none;
+.Pokecard-idno-slash {
+  display: block;
+  padding-left: calc(2ch);
+  position: relative;
+  left: -53.5px;
+  top: 0.5px; /* Adjust this to move the slash up (negative) or down (positive) */
 }
 
 .Pokecard-idno .Pokecard-metalabel {
@@ -290,6 +332,14 @@ h1 {
   top: 3px;
 }
 
+.Pokecard-ot-slash {
+  position: relative;
+  top: 0px;
+  left: 0px;
+}
+
 .Pokecard-ot .Pokecard-metavalue {
   text-transform: none;
+  position: relative;
+  left: 0px;
 }

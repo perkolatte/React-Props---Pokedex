@@ -2,7 +2,7 @@
 // BY HECTOR MADRIGAL, JIM MCQ, IGN-GAMEGUIDES, +8.6K MORE
 // UPDATED MAR 17, 2013
 // https://www.ign.com/wikis/pokemon-red-blue-yellow-version/Pokemon%20Types
-const DEFAULT_POKEMON = [
+const STARTER_POKEMON_POOL = [
   { id: 4, name: "Charmander", type: "fire", level: 12 },
   { id: 7, name: "Squirtle", type: "water", level: 13 },
   { id: 11, name: "Metapod", type: "bug", level: 14 },
@@ -13,7 +13,7 @@ const DEFAULT_POKEMON = [
   { id: 133, name: "Eevee", type: "normal", level: 11 },
 ];
 
-const TYPE_MULTIPLIERS = {
+const TYPE_EFFECTIVENESS_CHART = {
   normal: { rock: 0.5, ghost: 0 },
   fire: {
     grass: 2,
@@ -89,116 +89,127 @@ const TYPE_MULTIPLIERS = {
   dragon: { dragon: 2 },
 };
 
-function getMultiplier(attacker, defender) {
-  const table = TYPE_MULTIPLIERS[attacker];
-  if (!table) return 1;
-  const value = table[defender];
-  return value === undefined ? 1 : value;
+function calculateTypeEffectiveness(attackerType, defenderType) {
+  const effectivenessTable = TYPE_EFFECTIVENESS_CHART[attackerType];
+  if (!effectivenessTable) return 1;
+  const multiplier = effectivenessTable[defenderType];
+  return multiplier === undefined ? 1 : multiplier;
 }
 
-function randomLevel() {
+function generateRandomLevel() {
   return Math.floor(Math.random() * 100) + 1;
 }
 
-function withEffectiveLevel(hand, opponentHand) {
-  return hand.map((pokemon) => {
-    const total = opponentHand.reduce(
-      (sum, opponent) => sum + getMultiplier(pokemon.type, opponent.type),
+function calculateEffectiveLevels(playerHand, opponentHand) {
+  return playerHand.map((pokemon) => {
+    const totalEffectiveness = opponentHand.reduce(
+      (sum, opponent) =>
+        sum + calculateTypeEffectiveness(pokemon.type, opponent.type),
       0
     );
-    const average = total / opponentHand.length;
-    const base = randomLevel();
+    const averageEffectiveness = totalEffectiveness / opponentHand.length;
+    const baseLevel = generateRandomLevel();
 
     return {
       ...pokemon,
-      level: Math.max(1, Math.floor(base * average)),
+      level: Math.max(1, Math.floor(baseLevel * averageEffectiveness)),
     };
   });
 }
 
-function pickRandomHand(pool, size) {
-  const pokemon = [...pool];
-  const hand = [];
+function selectRandomPokemon(availablePool, count) {
+  const remainingPokemon = [...availablePool];
+  const selectedPokemon = [];
 
-  while (hand.length < size && pokemon.length > 0) {
-    const randIdx = Math.floor(Math.random() * pokemon.length);
-    hand.push(pokemon.splice(randIdx, 1)[0]);
+  while (selectedPokemon.length < count && remainingPokemon.length > 0) {
+    const randomIndex = Math.floor(Math.random() * remainingPokemon.length);
+    selectedPokemon.push(remainingPokemon.splice(randomIndex, 1)[0]);
   }
 
-  return hand;
+  return selectedPokemon;
 }
 
-function Pokegame({ pokemon = DEFAULT_POKEMON } = {}) {
-  const [pool, setPool] = React.useState(pokemon);
-  const [loading, setLoading] = React.useState(false);
+function Pokegame({ pokemon = STARTER_POKEMON_POOL } = {}) {
+  const [pokemonPool, setPokemonPool] = React.useState(pokemon);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
-    let isActive = true;
-    setLoading(true);
+    let isMounted = true;
+    setIsLoading(true);
 
     fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
-      .then((res) => res.json())
+      .then((response) => response.json())
       .then((data) =>
         Promise.all(
-          data.results.map((pokemon) =>
-            fetch(pokemon.url).then((res) => res.json())
+          data.results.map((pokemonEntry) =>
+            fetch(pokemonEntry.url).then((response) => response.json())
           )
         )
       )
-      .then((details) => {
-        if (!isActive) return;
-        const mapped = details.map((pokemon) => {
+      .then((pokemonDetails) => {
+        if (!isMounted) return;
+        const formattedPokemon = pokemonDetails.map((pokemonData) => {
           const primaryType =
-            pokemon.types && pokemon.types[0] && pokemon.types[0].type
-              ? pokemon.types[0].type.name
+            pokemonData.types &&
+            pokemonData.types[0] &&
+            pokemonData.types[0].type
+              ? pokemonData.types[0].type.name
               : "normal";
           const secondaryType =
-            pokemon.types && pokemon.types[1] && pokemon.types[1].type
-              ? pokemon.types[1].type.name
+            pokemonData.types &&
+            pokemonData.types[1] &&
+            pokemonData.types[1].type
+              ? pokemonData.types[1].type.name
               : "";
 
           return {
-            id: pokemon.id,
-            name: pokemon.name,
+            id: pokemonData.id,
+            name: pokemonData.name,
             type: primaryType,
             type2: secondaryType,
             level: 1,
           };
         });
-        setPool(mapped);
+        setPokemonPool(formattedPokemon);
       })
-      .catch((err) => {
-        console.error("Failed to load PokéAPI data", err);
+      .catch((error) => {
+        console.error("Failed to load PokéAPI data", error);
       })
       .finally(() => {
-        if (isActive) setLoading(false);
+        if (isMounted) setIsLoading(false);
       });
 
     return () => {
-      isActive = false;
+      isMounted = false;
     };
   }, []);
 
-  if (loading && pool.length < 8) {
+  if (isLoading && pokemonPool.length < 8) {
     return <div className="Pokegame">Loading...</div>;
   }
 
-  if (pool.length < 8) {
+  if (pokemonPool.length < 8) {
     return <div className="Pokegame">Loading...</div>;
   }
 
-  const hand1 = pickRandomHand(pool, 4);
-  const remaining = pool.filter(
-    (pokemon) => !hand1.some((picked) => picked.id === pokemon.id)
+  const playerOneHand = selectRandomPokemon(pokemonPool, 4);
+  const remainingPokemon = pokemonPool.filter(
+    (pokemon) => !playerOneHand.some((selected) => selected.id === pokemon.id)
   );
-  const hand2 = pickRandomHand(remaining, 4);
-  const hand1WithLevel = withEffectiveLevel(hand1, hand2);
-  const hand2WithLevel = withEffectiveLevel(hand2, hand1);
+  const playerTwoHand = selectRandomPokemon(remainingPokemon, 4);
+  const playerOneWithLevels = calculateEffectiveLevels(
+    playerOneHand,
+    playerTwoHand
+  );
+  const playerTwoWithLevels = calculateEffectiveLevels(
+    playerTwoHand,
+    playerOneHand
+  );
 
   return (
     <div className="Pokegame">
-      <Pokedex pokemon={hand1WithLevel} />
-      <Pokedex pokemon={hand2WithLevel} />
+      <Pokedex pokemon={playerOneWithLevels} />
+      <Pokedex pokemon={playerTwoWithLevels} />
     </div>
   );
 }
