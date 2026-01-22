@@ -91,7 +91,6 @@ function Pokecard(props) {
   const [processedSpriteData, setProcessedSpriteData] = React.useState(null);
   const [spriteStyle, setSpriteStyle] = React.useState({});
   const [originalSpriteUrl, setOriginalSpriteUrl] = React.useState(null);
-  // Removed showOriginalBorder state
 
   React.useEffect(() => {
     let blobUrl = null;
@@ -103,88 +102,21 @@ function Pokecard(props) {
         const spriteImage = new Image();
         spriteImage.crossOrigin = "anonymous";
         spriteImage.onload = () => {
+          // BYPASS CROPPING: Draw sprite as-is, no cropping or bounds calculation
           const sourceCanvas = document.createElement("canvas");
           const sourceContext = sourceCanvas.getContext("2d", {
             willReadFrequently: true,
           });
-
           sourceCanvas.width = spriteImage.naturalWidth;
           sourceCanvas.height = spriteImage.naturalHeight;
           sourceContext.drawImage(spriteImage, 0, 0);
 
-          // Cache the original sprite as a data URL BEFORE any modification
           setOriginalSpriteUrl(sourceCanvas.toDataURL());
 
-          const imageData = sourceContext.getImageData(
-            0,
-            0,
-            sourceCanvas.width,
-            sourceCanvas.height,
-          );
-          const pixelData = imageData.data;
-
-          // Replace white pixels with transparency
-          for (let i = 0; i < pixelData.length; i += 4) {
-            const red = pixelData[i];
-            const green = pixelData[i + 1];
-            const blue = pixelData[i + 2];
-            if (red > 250 && green > 250 && blue > 250) {
-              pixelData[i + 3] = 0;
-            }
-          }
-          sourceContext.putImageData(imageData, 0, 0);
-
-          // Re-read after white removal
-          const cleanedImageData = sourceContext.getImageData(
-            0,
-            0,
-            sourceCanvas.width,
-            sourceCanvas.height,
-          );
-          const cleanedPixels = cleanedImageData.data;
-
-          let boundLeft = sourceCanvas.width,
-            boundTop = sourceCanvas.height;
-          let boundRight = 0,
-            boundBottom = 0;
-
-          for (let y = 0; y < sourceCanvas.height; y++) {
-            for (let x = 0; x < sourceCanvas.width; x++) {
-              const alpha = cleanedPixels[(y * sourceCanvas.width + x) * 4 + 3];
-              if (alpha > 0) {
-                if (x < boundLeft) boundLeft = x;
-                if (x > boundRight) boundRight = x;
-                if (y < boundTop) boundTop = y;
-                if (y > boundBottom) boundBottom = y;
-              }
-            }
-          }
-
-          const croppedWidth = boundRight - boundLeft + 1;
-          const croppedHeight = boundBottom - boundTop + 1;
-
-          // First crop to bounds
-          const croppedCanvas = document.createElement("canvas");
-          croppedCanvas.width = croppedWidth;
-          croppedCanvas.height = croppedHeight;
-          const croppedContext = croppedCanvas.getContext("2d", {
-            willReadFrequently: true,
-          });
-          croppedContext.drawImage(
-            sourceCanvas,
-            boundLeft,
-            boundTop,
-            croppedWidth,
-            croppedHeight,
-            0,
-            0,
-            croppedWidth,
-            croppedHeight,
-          );
-          // Crop and scale sprite
-          const manualScale = 2; // <--- Change this value to scale all sprites
-          const scaledWidth = Math.floor(croppedWidth * manualScale);
-          const scaledHeight = Math.floor(croppedHeight * manualScale);
+          // Scale the original sprite (no cropping)
+          const manualScale = 1.98; // <--- Change this value to scale all sprites
+          const scaledWidth = Math.floor(sourceCanvas.width * manualScale);
+          const scaledHeight = Math.floor(sourceCanvas.height * manualScale);
 
           const scaledCanvas = document.createElement("canvas");
           scaledCanvas.width = scaledWidth;
@@ -194,7 +126,7 @@ function Pokecard(props) {
           });
           scaledContext.imageSmoothingEnabled = false;
           scaledContext.drawImage(
-            croppedCanvas,
+            sourceCanvas,
             0,
             0,
             scaledWidth,
@@ -203,21 +135,9 @@ function Pokecard(props) {
 
           setProcessedSpriteData(scaledCanvas.toDataURL());
 
-          // Calculate the Y position for the bottom of the sprite to align with row 7 (start of 7th row, 0-based index 6)
-          const gridPadding = getComputedStyle(document.body)
-            .getPropertyValue("--grid-padding")
-            .trim();
-          const rowHeight = getComputedStyle(document.body)
-            .getPropertyValue("--row-height")
-            .trim();
-          // Remove 'px' and parse as float
-          const gridPaddingPx = parseFloat(gridPadding);
-          const rowHeightPx = parseFloat(rowHeight);
-          // Align bottom left of sprite with start of row 6
-
           // Manually set sprite position (adjust these values as needed)
           const manualLeft = 31.5; // px from left
-          const manualBottom = 172.75; // px from bottom
+          const manualBottom = 173.5; // px from bottom
           // To align bottom left, set top = (container height - manualBottom - sprite height)
           const container = document.querySelector(".Pokecard-sprite");
           let containerHeight = 0;
