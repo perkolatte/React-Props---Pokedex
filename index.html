@@ -1,9 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
     <title>Pokédex</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles/styles.css" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="assets/original_gb_screenshot_pikachu.png"
+    />
     <script
       src="https://unpkg.com/react@18/umd/react.development.js"
       crossorigin
@@ -28,10 +33,12 @@
     </svg>
     <div id="root"></div>
 
-    <script type="text/babel" src="Pokecard.js"></script>
-    <script type="text/babel" src="Pokedex.js"></script>
-    <script type="text/babel" src="Pokegame.js"></script>
-    <script type="text/babel" src="App.js"></script>
-    <script type="text/babel" src="index.js"></script>
+    <script type="text/babel" src="utils/spriteUtils.js"></script>
+    <script type="text/babel" src="utils/trainerUtils.js"></script>
+    <script type="text/babel" src="components/Pokecard.js"></script>
+    <script type="text/babel" src="components/Pokedex.js"></script>
+    <script type="text/babel" src="components/Pokegame.js"></script>
+    <script type="text/babel" src="components/App.js"></script>
+    <script type="text/babel" src="scripts/index.js"></script>
   </body>
 </html>

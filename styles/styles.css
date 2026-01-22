@@ -1,0 +1,291 @@
+/* Screenshot overlay for Pokecard */
+.Pokecard-screenshot-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 50;
+  filter: hue-rotate(200deg) saturate(2) brightness(1.1);
+}
+
+/* Screenshot card styling */
+.Pokecard-screenshot {
+  position: relative;
+  width: var(--card-width);
+  aspect-ratio: 10 / 9;
+  background: #222;
+  border: 2px solid #000;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Pokecard-screenshot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+@font-face {
+  font-family: "Pokemon RBYG";
+  src: url("../fonts/pokemon-red-blue-green-yellow-edition-font.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  margin: 0;
+  background: #c9c9c9;
+  text-align: center;
+  font-family: "Pokemon RBYG", monospace;
+  color: #111;
+  --card-width: 320px;
+  --grid-columns: 20;
+  --grid-rows: 18;
+  --grid-padding: -1px;
+  --grid-scale: 0.985;
+  --cell-width: calc(
+    var(--card-width) / var(--grid-columns)
+  ); /* 16px per cell */
+  --row-height: calc(
+    var(--card-width) * 0.9 / var(--grid-rows)
+  ); /* 16px per row (aspect 10/9 = 288px height) */
+  --sprite-size: 144px;
+  /* Font size multiplier - adjust to scale all text */
+  --font-size-multiplier: 2;
+  /* Text position offset - adjust these to move all letters */
+  --text-offset-x: -1px;
+  --text-offset-y: -9.5px;
+  /* Top/bottom half vertical offsets for q-top/q-bottom classes. Set to 0px to let --text-offset-y control all vertical positioning. Adjust as needed for fine-tuning. */
+  --top-half-y: 0px;
+  --bottom-half-y: 0px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1 {
+  margin: 20px 0 8px;
+  color: #111;
+  font-size: 26px;
+  letter-spacing: 0px;
+}
+
+.Pokegame {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.Pokedex {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px 20px;
+  padding: 6px 16px 20px;
+}
+
+/* Wrapper for card with labels */
+.Pokecard-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+}
+
+.Pokecard-row-wrapper {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Column labels (top) */
+.Pokecard-col-labels {
+  display: flex;
+  margin-left: 20px; /* offset for row labels */
+}
+
+/* Row labels (left) */
+.Pokecard-row-labels {
+  display: flex;
+  flex-direction: column;
+  width: 20px;
+}
+
+/* Individual label styling */
+.Pokecard-label {
+  width: var(--cell-width);
+  height: var(--row-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-family: monospace;
+  color: #666;
+}
+
+.Pokecard-row-labels .Pokecard-label {
+  width: 20px;
+}
+
+.Pokecard {
+  width: var(--card-width);
+  aspect-ratio: 10 / 9;
+  padding: 0;
+  background: white;
+  border: 2px solid black;
+  border-radius: 4px;
+  box-shadow: none;
+  overflow: hidden;
+  position: relative;
+  filter: url(#gbc-colors);
+}
+
+/* Hide card background for screenshot card */
+.Pokecard-screenshot::before {
+  display: none !important;
+}
+
+/* Card background image layer */
+.Pokecard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("../assets/card_background_white_hp.png") center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Dark overlay layer */
+.Pokecard::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* Ensure grid is in front of everything */
+.Pokecard-grid {
+  position: absolute;
+  top: var(--grid-padding);
+  left: var(--grid-padding);
+  width: calc(100% - 2 * var(--grid-padding));
+  height: calc(100% - 2 * var(--grid-padding));
+  z-index: 200;
+  transform: scale(var(--grid-scale));
+  transform-origin: center center;
+}
+
+/* Sprite container */
+.Pokecard-sprite {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  z-index: 1;
+}
+
+/* HP bar */
+.Pokecard-hpbar {
+  position: absolute;
+  top: 52px;
+  left: 252.75px;
+  transform: translateX(-50%);
+  width: 95px;
+  height: 4.5px;
+  overflow: visible;
+  z-index: 5;
+}
+
+.Pokecard-hpfill {
+  height: 100%;
+  background: #00ff00;
+  transition: width 0.3s ease;
+}
+
+/* Grid container for all text */
+.Pokecard-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+/* Debug grid overlay - only visible when showGrid is true */
+.show-grid .Pokecard-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 0, 0, 0.2) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 0, 0, 0.2) 1px, transparent 1px);
+  background-size: var(--cell-width) var(--row-height);
+  background-position: -3px -3px; /* X offset, Y offset - adjust these values */
+}
+
+/* Grid-aligned text positioning */
+.Pokecard-grid-text {
+  position: absolute;
+  font-family: "Pokemon RBYG", monospace;
+  font-size: calc(var(--cell-width) * var(--font-size-multiplier));
+  line-height: var(--row-height);
+  white-space: nowrap;
+  margin-left: var(--text-offset-x);
+  margin-top: var(--text-offset-y);
+}
+
+/* Top/bottom half vertical adjustments */
+.Pokecard-grid-text.q-top {
+  margin-top: calc(var(--text-offset-y) + var(--top-half-y));
+}
+.Pokecard-grid-text.q-bottom {
+  margin-top: calc(var(--text-offset-y) + var(--bottom-half-y));
+}
+
+/* Force each character to be exactly cell-width x row-height */
+.Pokecard [data-grid-char] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--cell-width);
+  height: var(--row-height);
+  font-family: "Pokemon RBYG", monospace;
+  font-size: calc(var(--cell-width) * var(--font-size-multiplier));
+  line-height: 1;
+  overflow: visible;
+}
+
+/* Grid toggle button */
+.grid-toggle-btn {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  font-family: "Pokemon RBYG", monospace;
+  font-size: 16px;
+  background: #333;
+  color: #fff;
+  border: 2px solid #000;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.grid-toggle-btn:hover {
+  background: #555;
+}

@@ -153,7 +153,57 @@ const GENERATION_ONE_POKEMON = [
   { id: 151, name: "Mew", type: "psychic" },
 ];
 
-function Pokedex({ pokemon = GENERATION_ONE_POKEMON } = {}) {
+// Add Pikachu at level 6 and Bulbasaur at level 15
+const TEMP_POKEMON = [
+  { id: 25, name: "Pikachu", type: "electric", level: 6 },
+  { id: 1, name: "Bulbasaur", type: "grass", type2: "poison", level: 15 },
+];
+
+function ScreenshotCard({
+  showGrid,
+  screenshot = "assets/original_gb_screenshot.png",
+}) {
+  // This card mimics Pokecard layout but just shows the screenshot image with overlays
+  return (
+    <div className={`Pokecard-wrapper ${showGrid ? "show-grid" : ""}`}>
+      {/* Column numbers (top) */}
+      {showGrid && (
+        <div className="Pokecard-col-labels">
+          {Array.from({ length: 20 }, (_, i) => (
+            <span key={i} className="Pokecard-label">
+              {i}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="Pokecard-row-wrapper">
+        {/* Row numbers (left) */}
+        {showGrid && (
+          <div className="Pokecard-row-labels">
+            {Array.from({ length: 18 }, (_, i) => (
+              <span key={i} className="Pokecard-label">
+                {i}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="Pokecard Pokecard-screenshot">
+          <img
+            src={screenshot}
+            alt="GB Screenshot"
+            className="Pokecard-screenshot-img"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Pokedex({ pokemon = TEMP_POKEMON } = {}) {
+  const [showGrid, setShowGrid] = React.useState(true);
+  const [showOverlay, setShowOverlay] = React.useState(true);
+  const [showGbcFilter, setShowGbcFilter] = React.useState(false);
+
   const pokemonCards = pokemon.map((pokemonData) => (
     <Pokecard
       key={pokemonData.id}
@@ -162,8 +212,54 @@ function Pokedex({ pokemon = GENERATION_ONE_POKEMON } = {}) {
       type={pokemonData.type}
       type2={pokemonData.type2}
       level={pokemonData.level}
+      showGrid={showGrid}
+      showScreenshotOverlay={showOverlay}
+      showGbcFilter={showGbcFilter}
     />
   ));
 
-  return <div className="Pokedex">{pokemonCards}</div>;
+  return (
+    <>
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          justifyContent: "center",
+          marginBottom: 12,
+        }}
+      >
+        <button
+          className="grid-toggle-btn"
+          onClick={() => setShowGrid(!showGrid)}
+        >
+          {showGrid ? "Hide Grid" : "Show Grid"}
+        </button>
+        <button
+          className="grid-toggle-btn"
+          onClick={() => setShowOverlay((v) => !v)}
+        >
+          {showOverlay ? "Hide Screenshot Overlay" : "Show Screenshot Overlay"}
+        </button>
+        <button
+          className="grid-toggle-btn"
+          onClick={() => setShowGbcFilter((v) => !v)}
+        >
+          {showGbcFilter ? "Hide GBC Color Filter" : "Show GBC Color Filter"}
+        </button>
+        {/* Removed Show Original Sprite Border button */}
+      </div>
+      <div
+        className="Pokedex"
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          gap: 32,
+          justifyContent: "center",
+        }}
+      >
+        {pokemonCards}
+        <ScreenshotCard showGrid={showGrid} />
+      </div>
+    </>
+  );
 }

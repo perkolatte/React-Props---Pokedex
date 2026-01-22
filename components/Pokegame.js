@@ -105,7 +105,7 @@ function calculateEffectiveLevels(playerHand, opponentHand) {
     const totalEffectiveness = opponentHand.reduce(
       (sum, opponent) =>
         sum + calculateTypeEffectiveness(pokemon.type, opponent.type),
-      0
+      0,
     );
     const averageEffectiveness = totalEffectiveness / opponentHand.length;
     const baseLevel = generateRandomLevel();
@@ -142,9 +142,9 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL } = {}) {
       .then((data) =>
         Promise.all(
           data.results.map((pokemonEntry) =>
-            fetch(pokemonEntry.url).then((response) => response.json())
-          )
-        )
+            fetch(pokemonEntry.url).then((response) => response.json()),
+          ),
+        ),
       )
       .then((pokemonDetails) => {
         if (!isMounted) return;
@@ -194,16 +194,16 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL } = {}) {
 
   const playerOneHand = selectRandomPokemon(pokemonPool, 4);
   const remainingPokemon = pokemonPool.filter(
-    (pokemon) => !playerOneHand.some((selected) => selected.id === pokemon.id)
+    (pokemon) => !playerOneHand.some((selected) => selected.id === pokemon.id),
   );
   const playerTwoHand = selectRandomPokemon(remainingPokemon, 4);
   const playerOneWithLevels = calculateEffectiveLevels(
     playerOneHand,
-    playerTwoHand
+    playerTwoHand,
   );
   const playerTwoWithLevels = calculateEffectiveLevels(
     playerTwoHand,
-    playerOneHand
+    playerOneHand,
   );
 
   return (
@@ -213,3 +213,5 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL } = {}) {
     </div>
   );
 }
+
+// No export needed for in-browser Babel. Pokegame is now a global function.

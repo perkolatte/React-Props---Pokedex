@@ -1,0 +1,2 @@
+// Place your Pikachu screenshot here for overlay and comparison.
+// Example usage: <img src="original_gb_screenshot_pikachu.png" ... />
