@@ -63,7 +63,7 @@ body {
   --font-size-multiplier: 2;
   /* Text position offset - adjust these to move all letters */
   --text-offset-x: -1px;
-  --text-offset-y: -9.5px;
+  --text-offset-y: -9px;
   /* Top/bottom half vertical offsets for q-top/q-bottom classes. Set to 0px to let --text-offset-y control all vertical positioning. Adjust as needed for fine-tuning. */
   --top-half-y: 0px;
   --bottom-half-y: 0px;
@@ -170,12 +170,19 @@ h1 {
 /* Sprite container */
 .Pokecard-sprite {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+  /* Constrain sprite area to grid cells columns 0..9 and rows 0..7 (10 cols × 8 rows) */
+  left: calc(var(--grid-padding) + 0 * var(--cell-width) + 0.2px);
+  top: calc(var(--grid-padding) + 0 * var(--row-height) - 0.5px);
+  /* Sprite area width/height (10 cols × 8 rows) */
+  width: calc(9 * var(--cell-width));
+  height: calc(7 * var(--row-height));
+  /* Clip sprite so it stops exactly at the grid border between 9,7 and 10,8 */
+  overflow: hidden;
+  /* Place sprite behind the grid and screenshot overlay */
   z-index: 1;
+  /* Sprite border: contrasting color to gridlines for visibility */
+  outline: 0.5px solid rgba(0, 153, 255, 0.85);
+  pointer-events: none;
 }
 
 /* HP bar */
@@ -209,10 +216,10 @@ h1 {
 /* Debug grid overlay - only visible when showGrid is true */
 .show-grid .Pokecard-grid {
   background-image:
-    linear-gradient(to right, rgba(255, 0, 0, 0.2) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 0, 0, 0.2) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 0, 0, 0.2) 0.5px, transparent 0.5px),
+    linear-gradient(to bottom, rgba(255, 0, 0, 0.2) 0.5px, transparent 0.5px);
   background-size: var(--cell-width) var(--row-height);
-  background-position: -3px -3px; /* X offset, Y offset - adjust these values */
+  background-position: -2.25px -2.5px; /* X offset, Y offset - adjust these values */
 }
 
 /* Grid-aligned text positioning */

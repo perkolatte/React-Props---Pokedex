@@ -136,28 +136,14 @@ function Pokecard(props) {
           setProcessedSpriteData(scaledCanvas.toDataURL());
 
           // Manually set sprite position (adjust these values as needed)
-          const manualLeft = 31.5; // px from left
-          const manualBottom = 173.5; // px from bottom
-          // To align bottom left, set top = (container height - manualBottom - sprite height)
-          const container = document.querySelector(".Pokecard-sprite");
-          let containerHeight = 0;
-          if (container) {
-            containerHeight = container.offsetHeight;
-          } else {
-            // fallback: use card height (288px for 320px width)
-            containerHeight = 288;
-          }
-
-          // Optionally, allow per-sprite scale override via props (uncomment if needed)
-          // const scale = props.spriteScale || manualScale;
-
-          const top = containerHeight - manualBottom - scaledHeight;
-
+          // Position sprite centered at bottom of the sprite container
+          // Use `bottom` anchoring so the sprite remains stuck to the container bottom
+          // Anchor sprite to bottom of the sprite container
           setSpriteStyle({
             position: "absolute",
-            left: `${manualLeft}px`,
-            top: `${top}px`,
-            transform: "scaleX(-1)", // only flip, no centering
+            left: "50%",
+            bottom: `0px`,
+            transform: "translateX(-50%) scaleX(-1)", // center horizontally and flip
             imageRendering: "pixelated",
           });
         };
@@ -327,10 +313,12 @@ function BlueOverlayImage({ src, className, alt }) {
       } else {
         corners.push(samplePixel(0, 0));
       }
-      const bg = corners.reduce(
-        (acc, c) => [acc[0] + c[0], acc[1] + c[1], acc[2] + c[2]],
-        [0, 0, 0],
-      ).map((v) => Math.round(v / corners.length));
+      const bg = corners
+        .reduce(
+          (acc, c) => [acc[0] + c[0], acc[1] + c[1], acc[2] + c[2]],
+          [0, 0, 0],
+        )
+        .map((v) => Math.round(v / corners.length));
 
       const bgThreshold = 60; // color-distance threshold to consider "background"
 
