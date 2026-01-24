@@ -159,46 +159,6 @@ const TEMP_POKEMON = [
   { id: 1, name: "Bulbasaur", type: "grass", type2: "poison", level: 15 },
 ];
 
-function ScreenshotCard({
-  showGrid,
-  screenshot = "assets/original_gb_screenshot.png",
-}) {
-  // This card mimics Pokecard layout but just shows the screenshot image with overlays
-  return (
-    <div className={`Pokecard-wrapper ${showGrid ? "show-grid" : ""}`}>
-      {/* Column numbers (top) */}
-      {showGrid && (
-        <div className="Pokecard-col-labels">
-          {Array.from({ length: 20 }, (_, i) => (
-            <span key={i} className="Pokecard-label">
-              {i}
-            </span>
-          ))}
-        </div>
-      )}
-      <div className="Pokecard-row-wrapper">
-        {/* Row numbers (left) */}
-        {showGrid && (
-          <div className="Pokecard-row-labels">
-            {Array.from({ length: 18 }, (_, i) => (
-              <span key={i} className="Pokecard-label">
-                {i}
-              </span>
-            ))}
-          </div>
-        )}
-        <div className="Pokecard Pokecard-screenshot">
-          <img
-            src={screenshot}
-            alt="GB Screenshot"
-            className="Pokecard-screenshot-img"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function Pokedex({ pokemon = TEMP_POKEMON } = {}) {
   const [showGrid, setShowGrid] = React.useState(true);
   const [showOverlay, setShowOverlay] = React.useState(true);
@@ -258,7 +218,6 @@ function Pokedex({ pokemon = TEMP_POKEMON } = {}) {
         }}
       >
         {pokemonCards}
-        <ScreenshotCard showGrid={showGrid} />
       </div>
     </>
   );

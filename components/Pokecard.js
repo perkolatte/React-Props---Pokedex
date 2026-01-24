@@ -175,27 +175,7 @@ function Pokecard(props) {
   return (
     <div className={`Pokecard-wrapper ${props.showGrid ? "show-grid" : ""}`}>
       {/* ...removed show original sprite border button and image... */}
-      {/* Column numbers (top) */}
-      {props.showGrid && (
-        <div className="Pokecard-col-labels">
-          {Array.from({ length: 20 }, (_, i) => (
-            <span key={i} className="Pokecard-label">
-              {i}
-            </span>
-          ))}
-        </div>
-      )}
       <div className="Pokecard-row-wrapper">
-        {/* Row numbers (left) */}
-        {props.showGrid && (
-          <div className="Pokecard-row-labels">
-            {Array.from({ length: 18 }, (_, i) => (
-              <span key={i} className="Pokecard-label">
-                {i}
-              </span>
-            ))}
-          </div>
-        )}
         <div
           className="Pokecard"
           style={props.showGbcFilter === false ? { filter: "none" } : {}}
@@ -330,12 +310,51 @@ function BlueOverlayImage({ src, className, alt }) {
       ctx.drawImage(img, 0, 0);
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const d = imageData.data;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Sample corner pixels to determine the background color (handles off-white backgrounds)
+      function samplePixel(x, y) {
+        const idx = (y * w + x) * 4;
+        return [d[idx], d[idx + 1], d[idx + 2]];
+      }
+      const corners = [];
+      if (w > 2 && h > 2) {
+        corners.push(samplePixel(1, 1));
+        corners.push(samplePixel(w - 2, 1));
+        corners.push(samplePixel(1, h - 2));
+        corners.push(samplePixel(w - 2, h - 2));
+      } else {
+        corners.push(samplePixel(0, 0));
+      }
+      const bg = corners.reduce(
+        (acc, c) => [acc[0] + c[0], acc[1] + c[1], acc[2] + c[2]],
+        [0, 0, 0],
+      ).map((v) => Math.round(v / corners.length));
+
+      const bgThreshold = 60; // color-distance threshold to consider "background"
+
       for (let i = 0; i < d.length; i += 4) {
-        // If pixel is "black" (all channels < 40)
-        if (d[i] < 40 && d[i + 1] < 40 && d[i + 2] < 40 && d[i + 3] > 0) {
+        const r = d[i];
+        const g = d[i + 1];
+        const b = d[i + 2];
+        const a = d[i + 3];
+
+        // If pixel is "black" (all channels < 40) -> turn to blue
+        if (r < 40 && g < 40 && b < 40 && a > 0) {
           d[i] = 0; // R
           d[i + 1] = 102; // G
           d[i + 2] = 255; // B (pure blue)
+        } else {
+          // Compute color distance to sampled background
+          const dr = r - bg[0];
+          const dg = g - bg[1];
+          const db = b - bg[2];
+          const dist = Math.sqrt(dr * dr + dg * dg + db * db);
+          if (dist < bgThreshold) {
+            // Make background-like pixels fully transparent
+            d[i + 3] = 0;
+          }
         }
       }
       ctx.putImageData(imageData, 0, 0);

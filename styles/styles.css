@@ -8,7 +8,7 @@
   opacity: 0.5;
   pointer-events: none;
   z-index: 50;
-  filter: hue-rotate(200deg) saturate(2) brightness(1.1);
+  /* Removed CSS hue-rotate filter to preserve canvas-processed overlay colors */
 }
 
 /* Screenshot card styling */
@@ -107,34 +107,7 @@ h1 {
   flex-direction: row;
 }
 
-/* Column labels (top) */
-.Pokecard-col-labels {
-  display: flex;
-  margin-left: 20px; /* offset for row labels */
-}
-
-/* Row labels (left) */
-.Pokecard-row-labels {
-  display: flex;
-  flex-direction: column;
-  width: 20px;
-}
-
-/* Individual label styling */
-.Pokecard-label {
-  width: var(--cell-width);
-  height: var(--row-height);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-family: monospace;
-  color: #666;
-}
-
-.Pokecard-row-labels .Pokecard-label {
-  width: 20px;
-}
+/* Column/row label styles removed (grid numbering disabled) */
 
 .Pokecard {
   width: var(--card-width);
