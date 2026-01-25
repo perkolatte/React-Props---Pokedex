@@ -114,9 +114,11 @@ function Pokecard(props) {
           setOriginalSpriteUrl(sourceCanvas.toDataURL());
 
           // Scale the original sprite (no cropping)
-          const manualScale = 1.98; // <--- Change this value to scale all sprites
-          const scaledWidth = Math.floor(sourceCanvas.width * manualScale);
-          const scaledHeight = Math.floor(sourceCanvas.height * manualScale);
+          // Use separate horizontal/vertical scales so sprites can be nudged wider
+          const manualScaleY = 1.98; // vertical scale (height)
+          const manualScaleX = manualScaleY * 1.0095; // horizontal scale (width) - 5% wider
+          const scaledWidth = Math.floor(sourceCanvas.width * manualScaleX);
+          const scaledHeight = Math.floor(sourceCanvas.height * manualScaleY);
 
           const scaledCanvas = document.createElement("canvas");
           scaledCanvas.width = scaledWidth;

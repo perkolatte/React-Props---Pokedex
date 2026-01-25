@@ -164,7 +164,12 @@ function Pokedex({ pokemon = TEMP_POKEMON } = {}) {
   const [showOverlay, setShowOverlay] = React.useState(true);
   const [showGbcFilter, setShowGbcFilter] = React.useState(false);
 
-  const pokemonCards = pokemon.map((pokemonData) => (
+  // Exclude Pikachu from the current visual display while leaving data intact
+  const visiblePokemon = pokemon.filter(
+    (p) => String(p.name).toLowerCase() !== "pikachu",
+  );
+
+  const pokemonCards = visiblePokemon.map((pokemonData) => (
     <Pokecard
       key={pokemonData.id}
       id={pokemonData.id}

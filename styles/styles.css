@@ -51,7 +51,11 @@ body {
   --grid-columns: 20;
   --grid-rows: 18;
   --grid-padding: -1px;
-  --grid-scale: 0.985;
+  /* Separate grid scaling on X and Y axes (defaults preserve previous behavior) */
+  --grid-scale-x: 0.987;
+  --grid-scale-y: 0.987;
+  /* Backwards-compatible alias */
+  --grid-scale: var(--grid-scale-x);
   --cell-width: calc(
     var(--card-width) / var(--grid-columns)
   ); /* 16px per cell */
@@ -59,11 +63,15 @@ body {
     var(--card-width) * 0.9 / var(--grid-rows)
   ); /* 16px per row (aspect 10/9 = 288px height) */
   --sprite-size: 144px;
-  /* Font size multiplier - adjust to scale all text */
-  --font-size-multiplier: 2;
+  /* Manual sprite container nudge (positive moves sprite down/right) */
+  --sprite-offset-x: 2.6px;
+  --sprite-offset-y: 1px;
+  /* Separate font scaling for width and height (defaults keep previous behavior) */
+  --font-size-scale-x: 2.055;
+  --font-size-scale-y: 2.05;
   /* Text position offset - adjust these to move all letters */
-  --text-offset-x: -1px;
-  --text-offset-y: -9px;
+  --text-offset-x: -1.1px;
+  --text-offset-y: -18.1px;
   /* Top/bottom half vertical offsets for q-top/q-bottom classes. Set to 0px to let --text-offset-y control all vertical positioning. Adjust as needed for fine-tuning. */
   --top-half-y: 0px;
   --bottom-half-y: 0px;
@@ -163,7 +171,7 @@ h1 {
   width: calc(100% - 2 * var(--grid-padding));
   height: calc(100% - 2 * var(--grid-padding));
   z-index: 200;
-  transform: scale(var(--grid-scale));
+  transform: scaleX(var(--grid-scale-x)) scaleY(var(--grid-scale-y));
   transform-origin: center center;
 }
 
@@ -171,17 +179,33 @@ h1 {
 .Pokecard-sprite {
   position: absolute;
   /* Constrain sprite area to grid cells columns 0..9 and rows 0..7 (10 cols × 8 rows) */
-  left: calc(var(--grid-padding) + 0 * var(--cell-width) + 0.2px);
-  top: calc(var(--grid-padding) + 0 * var(--row-height) - 0.5px);
+  right: calc(
+    var(--grid-padding) + 11 * var(--cell-width) - var(--sprite-offset-x)
+  );
+  bottom: calc(
+    var(--grid-padding) + 11 * var(--row-height) - var(--sprite-offset-y)
+  );
   /* Sprite area width/height (10 cols × 8 rows) */
-  width: calc(9 * var(--cell-width));
-  height: calc(7 * var(--row-height));
+  width: calc(1px + 9 * var(--cell-width));
+  height: calc(6.5 * var(--row-height));
   /* Clip sprite so it stops exactly at the grid border between 9,7 and 10,8 */
-  overflow: hidden;
+
   /* Place sprite behind the grid and screenshot overlay */
   z-index: 1;
   /* Sprite border: contrasting color to gridlines for visibility */
-  outline: 0.5px solid rgba(0, 153, 255, 0.85);
+  outline: 0.5px none;
+  pointer-events: none;
+}
+
+/* Ensure rendered sprite images never exceed the sprite container height
+   (prevents tall sprites from touching the top of the card) */
+.Pokecard-sprite img {
+  image-rendering: pixelated;
+  /* keep positioning rules but allow inline styles to override when present */
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform-origin: center bottom;
   pointer-events: none;
 }
 
@@ -211,6 +235,8 @@ h1 {
   width: 100%;
   height: 100%;
   z-index: 2;
+  transform: scaleX(var(--grid-scale-x)) scaleY(var(--grid-scale-y));
+  transform-origin: center center;
 }
 
 /* Debug grid overlay - only visible when showGrid is true */
@@ -219,15 +245,18 @@ h1 {
     linear-gradient(to right, rgba(255, 0, 0, 0.2) 0.5px, transparent 0.5px),
     linear-gradient(to bottom, rgba(255, 0, 0, 0.2) 0.5px, transparent 0.5px);
   background-size: var(--cell-width) var(--row-height);
-  background-position: -2.25px -2.5px; /* X offset, Y offset - adjust these values */
+  background-position: -2.3px -2.8px;
 }
 
 /* Grid-aligned text positioning */
 .Pokecard-grid-text {
   position: absolute;
   font-family: "Pokemon RBYG", monospace;
-  font-size: calc(var(--cell-width) * var(--font-size-multiplier));
-  line-height: var(--row-height);
+  /* Font-size driven by height scale; width scaled separately via transform */
+  font-size: calc(var(--row-height) * var(--font-size-scale-y));
+  line-height: calc(var(--row-height) * var(--font-size-scale-y));
+  transform: scaleX(calc(var(--font-size-scale-x) / var(--font-size-scale-y)));
+  transform-origin: left center;
   white-space: nowrap;
   margin-left: var(--text-offset-x);
   margin-top: var(--text-offset-y);
@@ -249,8 +278,11 @@ h1 {
   width: var(--cell-width);
   height: var(--row-height);
   font-family: "Pokemon RBYG", monospace;
-  font-size: calc(var(--cell-width) * var(--font-size-multiplier));
+  /* Use height-based font-size and apply horizontal scaling separately */
+  font-size: calc(var(--row-height) * var(--font-size-scale-y));
   line-height: 1;
+  transform: scaleX(calc(var(--font-size-scale-x) / var(--font-size-scale-y)));
+  transform-origin: center center;
   overflow: visible;
 }
 
