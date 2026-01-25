@@ -77,7 +77,7 @@ function Pokecard(props) {
 
   const maxHp = calcHP(base.hp, level, ivs.hp, ev);
   const currentHp = maxHp;
-  const hpPercentage = Math.min(
+  const defaultHpPercentage = Math.min(
     100,
     Math.max(8, Math.floor((currentHp / maxHp) * 100)),
   );
@@ -91,6 +91,63 @@ function Pokecard(props) {
   const [processedSpriteData, setProcessedSpriteData] = React.useState(null);
   const [spriteStyle, setSpriteStyle] = React.useState({});
   const [originalSpriteUrl, setOriginalSpriteUrl] = React.useState(null);
+
+  // hpPercent prop may be provided by parent to animate HP (0-100)
+  const providedHpPercent =
+    typeof props.hpPercent === "number" ? props.hpPercent : undefined;
+  const [displayedHpPercent, setDisplayedHpPercent] = React.useState(
+    providedHpPercent !== undefined ? providedHpPercent : defaultHpPercentage,
+  );
+
+  const hpBarRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (providedHpPercent === undefined) return;
+    let mounted = true;
+    let rafId = null;
+    const duration = 900; // total duration in ms for the whole animation
+
+    const barWidth = hpBarRef.current
+      ? Math.max(1, hpBarRef.current.clientWidth)
+      : 95; // fallback to CSS width if ref not available
+
+    const fromPercent = displayedHpPercent;
+    const toPercent = providedHpPercent;
+    const fromPixels = Math.round((fromPercent / 100) * barWidth);
+    const toPixels = Math.round((toPercent / 100) * barWidth);
+    const deltaPixels = toPixels - fromPixels;
+    if (deltaPixels === 0) return undefined;
+
+    const stepSign = deltaPixels > 0 ? 1 : -1;
+    const steps = Math.abs(deltaPixels);
+    const timePerStep = Math.max(8, duration / steps);
+
+    let currentPixels = fromPixels;
+    let lastTime = performance.now();
+    let acc = 0;
+
+    function tick(now) {
+      if (!mounted) return;
+      const elapsed = now - lastTime;
+      acc += elapsed;
+      // advance while enough accumulated time
+      while (acc >= timePerStep && currentPixels !== toPixels) {
+        currentPixels += stepSign;
+        acc -= timePerStep;
+      }
+      const newPercent = (currentPixels / barWidth) * 100;
+      setDisplayedHpPercent(Number(newPercent.toFixed(1)));
+      lastTime = now;
+      if (currentPixels !== toPixels) rafId = requestAnimationFrame(tick);
+    }
+
+    rafId = requestAnimationFrame(tick);
+
+    return () => {
+      mounted = false;
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [providedHpPercent]);
 
   React.useEffect(() => {
     let blobUrl = null;
@@ -166,23 +223,18 @@ function Pokecard(props) {
       <div className="Pokecard-row-wrapper">
         <div
           className="Pokecard"
-          style={props.showGbcFilter === false ? { filter: "none" } : {}}
+          style={!props.showGbcFilter ? { filter: "none" } : {}}
         >
-          {/* Screenshot overlay (transparency) */}
+          {/* Screenshot overlay (transparency) - only show for Bulbasaur */}
           {props.showScreenshotOverlay &&
-            (props.name && props.name.toLowerCase() === "pikachu" ? (
-              <BlueOverlayImage
-                src="assets/original_gb_screenshot_pikachu.png"
-                alt="Pikachu GB Overlay"
-                className="Pokecard-screenshot-overlay"
-              />
-            ) : (
+            props.name &&
+            props.name.toLowerCase() === "bulbasaur" && (
               <BlueOverlayImage
                 src="assets/original_gb_screenshot.png"
                 alt="GB Overlay"
                 className="Pokecard-screenshot-overlay"
               />
-            ))}
+            )}
           {/* Sprite area */}
           <div className="Pokecard-sprite">
             {processedSpriteData && (
@@ -197,7 +249,7 @@ function Pokecard(props) {
           <div className="Pokecard-hpbar">
             <div
               className="Pokecard-hpfill"
-              style={{ width: `${hpPercentage}%` }}
+              style={{ width: `${displayedHpPercent}%` }}
             />
           </div>
           {/* Grid-aligned text layer */}
@@ -211,7 +263,10 @@ function Pokecard(props) {
             </GridText>
             {/* Row 4: HP values */}
             <GridText startCol={12} row={4} half="top">
-              {String(currentHp).padStart(3, " ") +
+              {String(Math.round((maxHp * displayedHpPercent) / 100)).padStart(
+                3,
+                " ",
+              ) +
                 "/" +
                 String(maxHp).padStart(3, " ")}
             </GridText>

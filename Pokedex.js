@@ -159,12 +159,51 @@ const TEMP_POKEMON = [
   { id: 1, name: "Bulbasaur", type: "grass", type2: "poison", level: 15 },
 ];
 
-function Pokedex({
-  pokemon = GENERATION_ONE_POKEMON,
-  showGrid = false,
-  showOverlay = false,
-  hpMap = {},
-} = {}) {
+function ScreenshotCard({
+  showGrid,
+  screenshot = "original_gb_screenshot.png",
+}) {
+  // This card mimics Pokecard layout but just shows the screenshot image with overlays
+  return (
+    <div className={`Pokecard-wrapper ${showGrid ? "show-grid" : ""}`}>
+      {/* Column numbers (top) */}
+      {showGrid && (
+        <div className="Pokecard-col-labels">
+          {Array.from({ length: 20 }, (_, i) => (
+            <span key={i} className="Pokecard-label">
+              {i}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="Pokecard-row-wrapper">
+        {/* Row numbers (left) */}
+        {showGrid && (
+          <div className="Pokecard-row-labels">
+            {Array.from({ length: 18 }, (_, i) => (
+              <span key={i} className="Pokecard-label">
+                {i}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="Pokecard Pokecard-screenshot">
+          <img
+            src={screenshot}
+            alt="GB Screenshot"
+            className="Pokecard-screenshot-img"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Pokedex({ pokemon = TEMP_POKEMON } = {}) {
+  const [showGrid, setShowGrid] = React.useState(true);
+  const [showOverlay, setShowOverlay] = React.useState(true);
+  const [showGbcFilter, setShowGbcFilter] = React.useState(false);
+
   const pokemonCards = pokemon.map((pokemonData) => (
     <Pokecard
       key={pokemonData.id}
@@ -175,31 +214,47 @@ function Pokedex({
       level={pokemonData.level}
       showGrid={showGrid}
       showScreenshotOverlay={showOverlay}
-      hpPercent={
-        typeof hpMap[pokemonData.id] === "number"
-          ? hpMap[pokemonData.id]
-          : undefined
-      }
+      showGbcFilter={showGbcFilter}
     />
   ));
 
-  // Menu handled by global Header component
-
-  // Toggle a global class so the "Show Grid" control can overlay grids
-  // on UI chrome elements (mode pokecard, menu, hamburger).
-  React.useEffect(() => {
-    try {
-      document.documentElement.classList.toggle("show-grid-global", showGrid);
-    } catch (e) {
-      // ignore server-side / test environments
-    }
-    return () => {};
-  }, [showGrid]);
-
   return (
     <>
-      {/* Controls moved to global Header component */}
+      <header className="ui-header">
+        <div
+          className="ui-header-inner"
+          style={{
+            display: "flex",
+            gap: 12,
+            alignItems: "center",
+            justifyContent: "flex-end",
+          }}
+        >
+          <button
+            className="grid-toggle-btn"
+            onClick={() => setShowOverlay((v) => !v)}
+          >
+            {showOverlay
+              ? "Hide Screenshot Overlay"
+              : "Show Screenshot Overlay"}
+          </button>
+          <button
+            className="grid-toggle-btn"
+            onClick={() => setShowGbcFilter((v) => !v)}
+          >
+            {showGbcFilter ? "Hide GBC Color Filter" : "Show GBC Color Filter"}
+          </button>
+        </div>
 
+        <div className="ui-header-toggle">
+          <button
+            className="grid-toggle-btn full-width-toggle"
+            onClick={() => setShowGrid(!showGrid)}
+          >
+            {showGrid ? "Hide Grid" : "Show Grid"}
+          </button>
+        </div>
+      </header>
       <div
         className="Pokedex"
         style={{
@@ -210,6 +265,7 @@ function Pokedex({
         }}
       >
         {pokemonCards}
+        <ScreenshotCard showGrid={showGrid} />
       </div>
     </>
   );

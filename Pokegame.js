@@ -129,7 +129,7 @@ function selectRandomPokemon(availablePool, count) {
   return selectedPokemon;
 }
 
-function Pokegame({ pokemon = STARTER_POKEMON_POOL, regenKey } = {}) {
+function Pokegame({ pokemon = STARTER_POKEMON_POOL } = {}) {
   const [pokemonPool, setPokemonPool] = React.useState(pokemon);
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -183,107 +183,6 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL, regenKey } = {}) {
       isMounted = false;
     };
   }, []);
-  const { playerOneWithLevels, playerTwoWithLevels } = React.useMemo(() => {
-    const playerOneHand = selectRandomPokemon(pokemonPool, 4);
-    const remainingPokemon = pokemonPool.filter(
-      (pokemon) =>
-        !playerOneHand.some((selected) => selected.id === pokemon.id),
-    );
-    const playerTwoHand = selectRandomPokemon(remainingPokemon, 4);
-    const playerOneWithLevels = calculateEffectiveLevels(
-      playerOneHand,
-      playerTwoHand,
-    );
-    const playerTwoWithLevels = calculateEffectiveLevels(
-      playerTwoHand,
-      playerOneHand,
-    );
-    return { playerOneWithLevels, playerTwoWithLevels };
-  }, [pokemonPool, regenKey]);
-
-  // HP percent map keyed by pokemon id (0-100). Initialize when teams change.
-  const [hpPercentMap, setHpPercentMap] = React.useState({});
-  const [battleWinner, setBattleWinner] = React.useState(null);
-
-  React.useEffect(() => {
-    const initial = {};
-    playerOneWithLevels.forEach((p) => (initial[p.id] = 100));
-    playerTwoWithLevels.forEach((p) => (initial[p.id] = 100));
-    setHpPercentMap(initial);
-    setBattleWinner(null);
-  }, [playerOneWithLevels, playerTwoWithLevels, regenKey]);
-
-  // Preload sprite images for the selected hands before showing the game
-  const [spritesPreloaded, setSpritesPreloaded] = React.useState(false);
-  React.useEffect(() => {
-    let mounted = true;
-    setSpritesPreloaded(false);
-    const ids = [
-      ...playerOneWithLevels.map((p) => p.id),
-      ...playerTwoWithLevels.map((p) => p.id),
-    ];
-    const uniqueIds = Array.from(new Set(ids));
-    let loaded = 0;
-    if (uniqueIds.length === 0) {
-      if (mounted) setSpritesPreloaded(true);
-      return () => (mounted = false);
-    }
-    uniqueIds.forEach((id) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = img.onerror = () => {
-        loaded += 1;
-        if (mounted && loaded === uniqueIds.length) setSpritesPreloaded(true);
-      };
-      img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/yellow/${id}.png`;
-    });
-    return () => {
-      mounted = false;
-    };
-  }, [playerOneWithLevels, playerTwoWithLevels, regenKey]);
-
-  const commenceBattle = React.useCallback(() => {
-    const ev = new CustomEvent("commenceBattle", {
-      detail: {
-        playerOne: playerOneWithLevels,
-        playerTwo: playerTwoWithLevels,
-      },
-    });
-    window.dispatchEvent(ev);
-
-    // Simple team power: sum of levels
-    const powerOne = playerOneWithLevels.reduce(
-      (s, p) => s + (p.level || 0),
-      0,
-    );
-    const powerTwo = playerTwoWithLevels.reduce(
-      (s, p) => s + (p.level || 0),
-      0,
-    );
-    let winner = null;
-    if (powerOne > powerTwo) winner = "playerOne";
-    else if (powerTwo > powerOne) winner = "playerTwo";
-    else winner = Math.random() > 0.5 ? "playerOne" : "playerTwo";
-
-    // Build new hp map: start at 100, losing team to 0
-    setHpPercentMap((prev) => {
-      const next = { ...prev };
-      playerOneWithLevels.forEach((p) => {
-        next[p.id] = 100;
-      });
-      playerTwoWithLevels.forEach((p) => {
-        next[p.id] = 100;
-      });
-      if (winner === "playerOne") {
-        playerTwoWithLevels.forEach((p) => (next[p.id] = 0));
-      } else {
-        playerOneWithLevels.forEach((p) => (next[p.id] = 0));
-      }
-      return next;
-    });
-
-    setBattleWinner(winner === "playerOne" ? "Player One" : "Player Two");
-  }, [playerOneWithLevels, playerTwoWithLevels]);
 
   if (isLoading && pokemonPool.length < 8) {
     return <div className="Pokegame">Loading...</div>;
@@ -293,31 +192,24 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL, regenKey } = {}) {
     return <div className="Pokegame">Loading...</div>;
   }
 
-  if (!spritesPreloaded) {
-    return <div className="Pokegame">Loading sprites...</div>;
-  }
+  const playerOneHand = selectRandomPokemon(pokemonPool, 4);
+  const remainingPokemon = pokemonPool.filter(
+    (pokemon) => !playerOneHand.some((selected) => selected.id === pokemon.id),
+  );
+  const playerTwoHand = selectRandomPokemon(remainingPokemon, 4);
+  const playerOneWithLevels = calculateEffectiveLevels(
+    playerOneHand,
+    playerTwoHand,
+  );
+  const playerTwoWithLevels = calculateEffectiveLevels(
+    playerTwoHand,
+    playerOneHand,
+  );
 
   return (
     <div className="Pokegame">
-      <Pokedex pokemon={playerOneWithLevels} hpMap={hpPercentMap} />
-
-      <div className="commence-battle-wrap">
-        <button
-          className="commence-battle-btn"
-          onClick={commenceBattle}
-          aria-label="Commence Battle"
-        >
-          COMMENCE BATTLE
-        </button>
-      </div>
-
-      <Pokedex pokemon={playerTwoWithLevels} hpMap={hpPercentMap} />
-
-      {battleWinner && (
-        <div className="battle-winner" aria-live="polite">
-          {battleWinner} wins!
-        </div>
-      )}
+      <Pokedex pokemon={playerOneWithLevels} />
+      <Pokedex pokemon={playerTwoWithLevels} />
     </div>
   );
 }

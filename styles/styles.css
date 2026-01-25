@@ -47,6 +47,7 @@ body {
   text-align: center;
   font-family: "Pokemon RBYG", monospace;
   color: #111;
+  --ui-bg: #e9e9e9;
   --card-width: 320px;
   --grid-columns: 20;
   --grid-rows: 18;
@@ -75,6 +76,26 @@ body {
   /* Top/bottom half vertical offsets for q-top/q-bottom classes. Set to 0px to let --text-offset-y control all vertical positioning. Adjust as needed for fine-tuning. */
   --top-half-y: 0px;
   --bottom-half-y: 0px;
+  /* UI chrome grid control: set 1 or 0 to enable/disable overlays, and use the "-pos" vars to nudge alignment */
+  --ui-grid-toggle: 1; /* mode toggle pill */
+  --ui-grid-menu: 1; /* menu panel */
+  --ui-grid-hamburger: 1; /* hamburger button */
+  --ui-grid-toggle-pos: -2.3px -2.8px;
+  --ui-grid-menu-pos: -2.3px -2.8px;
+  --ui-grid-hamburger-pos: -2.3px -2.8px;
+  /* Per-UI grid sizing controls (cells = columns/rows in cell units) */
+  --ui-toggle-cols: 16; /* number of columns for mode toggle */
+  --ui-toggle-rows: 3; /* number of rows for mode toggle */
+  --ui-toggle-gap: 0px; /* gap between toggle cells */
+
+  --ui-hamburger-cols: 3;
+  --ui-hamburger-rows: 3;
+  --ui-hamburger-gap: 0px;
+
+  /* Controls for menu panel sizing (cells wide / rows tall) */
+  --menu-panel-cells: 10; /* width in cells (overridden in some rules) */
+  --ui-menu-rows: 3; /* height in rows */
+  --ui-menu-gap: 0px;
 }
 
 * {
@@ -88,10 +109,347 @@ h1 {
   letter-spacing: 0px;
 }
 
+/* Mode toggle (pokedex / battle) */
+.mode-toggle {
+  display: grid;
+  /* 16 columns × 3 rows grid matching Pokecard cell sizing */
+  grid-template-columns: repeat(16, var(--cell-width));
+  grid-template-rows: repeat(3, var(--row-height));
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  margin: 12px 0;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff, #f1f1f1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  position: relative;
+  image-rendering: pixelated;
+  /* Ensure toggle exactly spans 16 cells */
+  min-width: calc(var(--cell-width) * 16);
+  /* horizontal padding inside the toggle used to keep highlighter inset */
+  --toggle-pad: 8px;
+}
+.mode-toggle,
+.mode-toggle .mode-label,
+.mode-toggle .highlighter {
+  cursor: pointer;
+}
+.mode-toggle .mode-label {
+  font-family: "Pokemon RBYG", monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  /* match Pokecard grid text sizing: height-driven font-size + horizontal scale */
+  font-size: calc(var(--row-height) * var(--font-size-scale-y));
+  line-height: calc(var(--row-height) * var(--font-size-scale-y));
+  transform: scaleX(calc(var(--font-size-scale-x) / var(--font-size-scale-y)));
+  transform-origin: center center;
+  letter-spacing: 1px;
+  image-rendering: pixelated;
+  /* Place labels in the center row and center horizontally */
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--cell-width);
+  align-self: center;
+  grid-row: 2; /* center row */
+  color: #111; /* force black text for all labels */
+}
+
+/* Position the left and right labels to occupy 8 columns each */
+.mode-toggle .mode-label:first-child {
+  grid-column: 1 / 9;
+  justify-self: center;
+}
+.mode-toggle .mode-label:last-child {
+  grid-column: 9 / 17;
+  justify-self: center;
+}
+
+/* sliding highlighter box placed via grid columns; animate by translateX */
+.mode-toggle .highlighter {
+  position: relative;
+  grid-row: 2 / 3;
+  grid-column: 1 / 9; /* default to left half */
+  margin: 2px var(--toggle-pad);
+  background: transparent; /* remove blue fill */
+  border: 2px solid #000; /* bordered slider */
+  border-radius: 4px; /* match outer box radius */
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.9, 0.2, 1),
+    border-color 0.12s;
+  z-index: 1;
+  image-rendering: pixelated;
+}
+.mode-toggle.pokedex .highlighter {
+  transform: translateX(0);
+}
+.mode-toggle.battle .highlighter {
+  transform: translateX(calc(8 * var(--cell-width)));
+}
+
+/* ensure labels sit above the highlighter */
+.mode-toggle .mode-label {
+  position: relative;
+  z-index: 2;
+  padding: 0 6px;
+}
+
+/* Each character occupies exactly one Pokecard cell */
+.mode-toggle .mode-label .char {
+  display: inline-grid;
+  width: var(--cell-width);
+  height: var(--row-height);
+  justify-items: center;
+  align-items: center;
+  font-family: "Pokemon RBYG", monospace;
+  font-size: calc(var(--row-height) * var(--font-size-scale-y));
+  line-height: calc(var(--row-height) * var(--font-size-scale-y));
+  transform: scaleX(calc(var(--font-size-scale-x) / var(--font-size-scale-y)));
+  transform-origin: center center;
+  image-rendering: pixelated;
+}
+
+/* active label contrast */
+.mode-toggle.pokedex .mode-label:first-child {
+  color: #111;
+}
+.mode-toggle.battle .mode-label:last-child {
+  color: #111;
+}
+.switch {
+  display: inline-block;
+}
+.switch input {
+  display: none;
+}
+.switch .slider {
+  width: 44px;
+  height: 22px;
+  background: #ddd;
+  border-radius: 22px;
+  display: inline-block;
+  position: relative;
+  transition: background 0.15s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.switch .slider::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+.switch input:checked + .slider {
+  background: #0a84ff;
+}
+.switch input:checked + .slider::before {
+  transform: translateX(22px);
+}
+
 .Pokegame {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* Commence Battle button between teams */
+.commence-battle-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.commence-battle-btn {
+  padding: 10px 18px;
+  background: #000;
+  color: #fff;
+  border: 2px solid #000;
+  border-radius: 6px;
+  font-family: "Pokemon RBYG", monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: none;
+  image-rendering: pixelated;
+}
+.commence-battle-btn:active {
+  transform: translateY(1px);
+}
+
+.battle-winner {
+  margin-top: 8px;
+  font-family: "Pokemon RBYG", monospace;
+  font-weight: 700;
+  color: #000;
+  text-transform: uppercase;
+}
+
+/* Top-right floating control menu */
+.top-right-menu {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 400;
+  /* remove outer box around the menu */
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Hamburger button */
+.hamburger-btn {
+  /* Make hamburger a 3x3 Pokecard-cell grid */
+  width: calc(3 * var(--cell-width));
+  height: calc(3 * var(--row-height));
+  display: grid;
+  grid-template-columns: repeat(3, var(--cell-width));
+  grid-template-rows: repeat(3, var(--row-height));
+  place-items: center;
+  padding: 2px;
+  background: var(--ui-bg);
+  border: 2px solid #000;
+  border-radius: 4px;
+  cursor: pointer;
+  image-rendering: pixelated;
+  position: relative;
+}
+.hamburger-btn .hamburger-icon {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: var(--cell-width);
+  height: var(--row-height);
+  font-family: "Pokemon RBYG", monospace;
+  font-weight: 700;
+  color: #111;
+  font-size: calc(
+    var(--row-height) * var(--font-size-scale-y) * var(--ui-font-mult-hamburger)
+  );
+  line-height: 1;
+  transform: translate(
+      var(--ui-text-offset-hamburger-x),
+      var(--ui-text-offset-hamburger-y)
+    )
+    scaleX(
+      calc(
+        (var(--font-size-scale-x) * var(--ui-scale-x-hamburger)) /
+          (var(--font-size-scale-y) * var(--ui-scale-y-hamburger))
+      )
+    );
+  transform-origin: center center;
+  image-rendering: pixelated;
+  user-select: none;
+}
+
+/* Dropdown panel (hidden by default, shown when .open) */
+.top-right-menu .menu-panel {
+  position: absolute;
+  right: 0;
+  top: 44px;
+  display: grid;
+  grid-auto-flow: row;
+  gap: var(--ui-menu-gap);
+  padding: 5px;
+  background: var(--ui-bg);
+  border: 2px solid #000;
+  border-radius: 4px;
+  box-shadow: none;
+  image-rendering: pixelated;
+  width: calc(var(--menu-panel-cells) * var(--cell-width));
+  height: calc(var(--ui-menu-rows) * var(--row-height));
+  min-width: 140px; /* floor in pixels */
+  max-width: 60vw;
+}
+
+/* Ensure menu labels are uppercase */
+.top-right-menu .menu-panel button,
+.top-right-menu {
+  text-transform: uppercase;
+  height: calc(2 * var(--row-height));
+}
+
+.hamburger-btn {
+  height: calc(3 * var(--row-height));
+}
+
+/* Make menu buttons visually match Pokecard buttons */
+.top-right-menu .menu-panel .grid-toggle-btn {
+  padding: 6px 10px;
+  margin: 0;
+  background: var(--ui-bg);
+  color: #111;
+  border: 2px solid #000;
+  border-radius: 4px;
+  /* use same font sizing/transform as Pokecard grid text */
+  font-family: "Pokemon RBYG", monospace;
+  font-size: calc(
+    var(--row-height) * var(--font-size-scale-y) * var(--ui-font-mult-menu)
+  );
+  line-height: 1;
+  transform: translate(
+      var(--ui-text-offset-menu-x),
+      var(--ui-text-offset-menu-y)
+    )
+    scaleX(
+      calc(
+        (var(--font-size-scale-x) * var(--ui-scale-x-menu)) /
+          (var(--font-size-scale-y) * var(--ui-scale-y-menu))
+      )
+    );
+  transform-origin: center center;
+}
+
+/* Ensure all menu buttons use the exact Pokecard grid text sizing and scale */
+.top-right-menu .menu-panel button {
+  font-family: "Pokemon RBYG", monospace;
+  font-size: calc(
+    var(--row-height) * var(--font-size-scale-y) * var(--ui-font-mult-menu)
+  );
+  line-height: 1;
+  transform: translate(
+      var(--ui-text-offset-menu-x),
+      var(--ui-text-offset-menu-y)
+    )
+    scaleX(
+      calc(
+        (var(--font-size-scale-x) * var(--ui-scale-x-menu)) /
+          (var(--font-size-scale-y) * var(--ui-scale-y-menu))
+      )
+    );
+  transform-origin: center center;
+  image-rendering: pixelated;
+}
+
+/* Active state highlight for menu options */
+.top-right-menu .menu-panel .grid-toggle-btn.active {
+  background: #111;
+  color: #fff;
+  border-color: #000;
+}
+
+/* Make menu items layout in a row (visually consistent with Pokecard) */
+.top-right-menu .menu-panel {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Mode toggle pill adjusted to match card look */
+.mode-toggle {
+  background: white;
+  border: 2px solid #000;
+  border-radius: 4px;
+  padding: 6px 8px;
+  box-shadow: none;
 }
 
 .Pokedex {
@@ -99,7 +457,7 @@ h1 {
   flex-wrap: wrap;
   justify-content: center;
   gap: 16px 20px;
-  padding: 6px 16px 20px;
+  padding: 32px 16px 20px;
 }
 
 /* Wrapper for card with labels */
@@ -128,6 +486,324 @@ h1 {
   overflow: hidden;
   position: relative;
   filter: url(#gbc-colors);
+}
+
+/* Mode Pokecard: a small Pokecard-style toggle instance with a 16x3 grid */
+.mode-pokecard {
+  --mode-columns: 16;
+  --mode-rows: 3;
+  width: calc(var(--cell-width) * 16);
+  height: calc(var(--row-height) * 3);
+  background: var(--ui-bg);
+  border: 2px solid #000;
+  border-radius: 4px;
+  box-shadow: none;
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  margin: 8px;
+}
+
+/* internal grid for label characters */
+.mode-pokecard .mode-grid {
+  display: grid;
+  grid-template-columns: repeat(16, var(--cell-width));
+  grid-template-rows: repeat(3, var(--row-height));
+  width: 100%;
+  height: 100%;
+  position: relative;
+  align-items: center;
+  justify-items: center;
+  user-select: none;
+  /* Apply same grid scaling transforms as Pokecard grid */
+  transform: scaleX(var(--grid-scale-x)) scaleY(var(--grid-scale-y));
+  transform-origin: center center;
+}
+
+.mode-pokecard .mode-cell {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: var(--cell-width);
+  height: var(--row-height);
+  font-family: "Pokemon RBYG", monospace;
+  font-weight: 700;
+  font-size: calc(
+    var(--row-height) * var(--font-size-scale-y) * var(--ui-font-mult-toggle)
+  );
+  line-height: 1;
+  transform: translate(
+      var(--ui-text-offset-toggle-x),
+      var(--ui-text-offset-toggle-y)
+    )
+    scaleX(
+      calc(
+        (var(--font-size-scale-x) * var(--ui-scale-x-toggle)) /
+          (var(--font-size-scale-y) * var(--ui-scale-y-toggle))
+      )
+    );
+  transform-origin: center center;
+  image-rendering: pixelated;
+  grid-row: 2; /* center row */
+}
+
+/* Apply grid scaling to hamburger and menu panel so UI chrome matches Pokecard scaling */
+.hamburger-btn,
+.top-right-menu .menu-panel {
+  transform: scaleX(var(--grid-scale-x)) scaleY(var(--grid-scale-y));
+  transform-origin: center center;
+}
+
+.mode-pokecard .highlighter {
+  position: absolute;
+  top: calc(var(--row-height) + 2px);
+  left: 0;
+  width: calc(8 * var(--cell-width));
+  height: calc(var(--row-height) - 4px);
+  margin-left: 2px;
+  border: 2px solid #000;
+  border-radius: 4px;
+  background: transparent;
+  transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.2, 1);
+  pointer-events: none;
+}
+.mode-pokecard.pokedex .highlighter {
+  transform: translateX(0);
+}
+.mode-pokecard.battle .highlighter {
+  transform: translateX(calc(8 * var(--cell-width)));
+}
+
+/* Show grid overlays on UI chrome when the global grid is enabled.
+   Each chrome piece has its own enable flag and position nudge variable. */
+.show-grid-global .mode-pokecard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  image-rendering: pixelated;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 1px, transparent 1px);
+  background-size:
+    var(--cell-width) var(--row-height),
+    var(--cell-width) var(--row-height);
+  background-position: var(--ui-grid-toggle-pos);
+  opacity: var(--ui-grid-toggle);
+}
+
+.show-grid-global .top-right-menu .menu-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  image-rendering: pixelated;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 1px, transparent 1px);
+  background-size:
+    var(--cell-width) var(--row-height),
+    var(--cell-width) var(--row-height);
+  background-position: var(--ui-grid-menu-pos);
+  opacity: var(--ui-grid-menu);
+}
+
+.show-grid-global .hamburger-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  image-rendering: pixelated;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 1px, transparent 1px);
+  background-size:
+    var(--cell-width) var(--row-height),
+    var(--cell-width) var(--row-height);
+  background-position: var(--ui-grid-hamburger-pos);
+  opacity: var(--ui-grid-hamburger);
+}
+
+/* Overlays for the new independent UI elements */
+/* Removed UI-grid overlays for .ui-* elements — UI uses normal text now. */
+
+/* ensure hamburger button has a positioned container for the overlay */
+.hamburger-btn {
+  position: relative;
+}
+
+/* NEW: independent UI toggle and menu (not related to Pokecard) */
+.ui-header-new {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--ui-bg);
+  border-bottom: 2px solid #000;
+  z-index: 1100;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+.ui-header-inner-new {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+}
+.ui-toggle-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  direction: ltr; /* ensure characters flow left-to-right */
+  position: relative;
+  background: linear-gradient(180deg, #fff, #f3f3f3);
+  border: 2px solid #000;
+  border-radius: 6px;
+  padding: 6px 12px;
+  image-rendering: pixelated;
+  color: #111;
+}
+.ui-toggle-grid {
+  /* no-op for legacy markup; labels flow inline */
+}
+.ui-toggle-cell {
+  display: inline-block;
+  vertical-align: middle;
+  font-family: "Pokemon RBYG", monospace;
+  font-weight: 700;
+  font-size: calc(
+    var(--row-height) * var(--font-size-scale-y) * var(--ui-font-mult-toggle)
+  );
+  line-height: 1;
+  padding: 0 2px;
+  transform: translate(
+      var(--ui-text-offset-toggle-x, 0px),
+      var(--ui-text-offset-toggle-y, 0px)
+    )
+    scaleX(
+      calc(
+        (var(--font-size-scale-x) * var(--ui-scale-x-toggle)) /
+          (var(--font-size-scale-y) * var(--ui-scale-y-toggle))
+      )
+    );
+  transform-origin: center center;
+  image-rendering: pixelated;
+  user-select: none;
+}
+.ui-highlighter {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: var(--highlighter-left, 6px);
+  width: var(--highlighter-width, calc(var(--cell-width) * 8 + 4px));
+  height: calc(var(--row-height) * 1.6);
+  margin: 0;
+  border-radius: 4px;
+  background: #000; /* filled black slider */
+  z-index: 1;
+  transition:
+    left 180ms ease,
+    width 180ms ease;
+}
+
+/* Label groups: spacing and active highlight */
+.ui-toggle-group {
+  display: inline-flex;
+  gap: 0;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  z-index: 2; /* keep labels above the sliding highlighter */
+}
+.ui-toggle-group + .ui-toggle-group {
+  margin-left: 18px; /* space between POKÉDEX and BATTLE */
+}
+
+/* Active/highlighted side: when the card has a mode class (pokedex|battle) */
+.ui-toggle-card.pokedex .ui-toggle-group.pokedex,
+.ui-toggle-card.battle .ui-toggle-group.battle {
+  /* text becomes white when its side is active; highlighter provides the filled background */
+  color: #fff;
+}
+
+/* Ensure child spans inherit color */
+.ui-toggle-card .ui-toggle-cell {
+  color: inherit;
+}
+.ui-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ui-hamburger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: var(--ui-bg);
+  border: 2px solid #000;
+  border-radius: 4px;
+}
+.ui-hamburger-icon {
+  width: var(--cell-width);
+  height: var(--row-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Pokemon RBYG", monospace;
+  font-weight: 700;
+  font-size: calc(
+    var(--row-height) * var(--font-size-scale-y) * var(--ui-font-mult-hamburger)
+  );
+  transform: translate(
+      var(--ui-text-offset-hamburger-x, 0px),
+      var(--ui-text-offset-hamburger-y, 0px)
+    )
+    scaleX(
+      calc(
+        (var(--font-size-scale-x) * var(--ui-scale-x-hamburger)) /
+          (var(--font-size-scale-y) * var(--ui-scale-y-hamburger))
+      )
+    );
+}
+.ui-menu-panel {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: var(--ui-bg);
+  border: 2px solid #000;
+  border-radius: 6px;
+  box-shadow: none;
+}
+.ui-menu-btn {
+  padding: 6px 10px;
+  background: var(--ui-bg);
+  border: 2px solid #000;
+  border-radius: 4px;
+  font-family: "Pokemon RBYG", monospace;
+  font-size: calc(
+    var(--row-height) * var(--font-size-scale-y) * var(--ui-font-mult-menu)
+  );
+  transform: translate(
+      var(--ui-text-offset-menu-x, 0px),
+      var(--ui-text-offset-menu-y, 0px)
+    )
+    scaleX(
+      calc(
+        (var(--font-size-scale-x) * var(--ui-scale-x-menu)) /
+          (var(--font-size-scale-y) * var(--ui-scale-y-menu))
+      )
+    );
+}
+.ui-menu-btn.active {
+  background: #111;
+  color: #fff;
 }
 
 /* Hide card background for screenshot card */
@@ -223,8 +899,8 @@ h1 {
 
 .Pokecard-hpfill {
   height: 100%;
-  background: #00ff00;
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, #33cc33, #00a000);
+  transition: none; /* we manually step pixels for authentic look */
 }
 
 /* Grid container for all text */
@@ -292,14 +968,20 @@ h1 {
   margin: 20px auto;
   padding: 10px 20px;
   font-family: "Pokemon RBYG", monospace;
-  font-size: 16px;
-  background: #333;
-  color: #fff;
+  font-size: calc(var(--cell-width) * var(--font-size-multiplier));
+  background: var(--ui-bg);
+  color: #111;
   border: 2px solid #000;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .grid-toggle-btn:hover {
-  background: #555;
+  background: #d6d6d6;
+}
+
+/* active variant for any standalone grid-toggle-btn */
+.grid-toggle-btn.active {
+  background: #111;
+  color: #fff;
 }
