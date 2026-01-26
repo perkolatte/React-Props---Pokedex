@@ -129,9 +129,15 @@ function selectRandomPokemon(availablePool, count) {
   return selectedPokemon;
 }
 
-function Pokegame({ pokemon = STARTER_POKEMON_POOL, regenKey } = {}) {
+function Pokegame({
+  pokemon = STARTER_POKEMON_POOL,
+  regenKey,
+  showGrid = false,
+  showOverlay = false,
+} = {}) {
   const [pokemonPool, setPokemonPool] = React.useState(pokemon);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [localRerollKey, setLocalRerollKey] = React.useState(0);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -199,7 +205,7 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL, regenKey } = {}) {
       playerOneHand,
     );
     return { playerOneWithLevels, playerTwoWithLevels };
-  }, [pokemonPool, regenKey]);
+  }, [pokemonPool, regenKey, localRerollKey]);
 
   // HP percent map keyed by pokemon id (0-100). Initialize when teams change.
   const [hpPercentMap, setHpPercentMap] = React.useState({});
@@ -211,7 +217,7 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL, regenKey } = {}) {
     playerTwoWithLevels.forEach((p) => (initial[p.id] = 100));
     setHpPercentMap(initial);
     setBattleWinner(null);
-  }, [playerOneWithLevels, playerTwoWithLevels, regenKey]);
+  }, [playerOneWithLevels, playerTwoWithLevels, regenKey, localRerollKey]);
 
   // Preload sprite images for the selected hands before showing the game
   const [spritesPreloaded, setSpritesPreloaded] = React.useState(false);
@@ -240,7 +246,7 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL, regenKey } = {}) {
     return () => {
       mounted = false;
     };
-  }, [playerOneWithLevels, playerTwoWithLevels, regenKey]);
+  }, [playerOneWithLevels, playerTwoWithLevels, regenKey, localRerollKey]);
 
   const commenceBattle = React.useCallback(() => {
     const ev = new CustomEvent("commenceBattle", {
@@ -285,6 +291,11 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL, regenKey } = {}) {
     setBattleWinner(winner === "playerOne" ? "Player One" : "Player Two");
   }, [playerOneWithLevels, playerTwoWithLevels]);
 
+  const rerollTeams = React.useCallback(() => {
+    setLocalRerollKey((k) => k + 1);
+    setBattleWinner(null);
+  }, []);
+
   if (isLoading && pokemonPool.length < 8) {
     return <div className="Pokegame">Loading...</div>;
   }
@@ -299,7 +310,12 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL, regenKey } = {}) {
 
   return (
     <div className="Pokegame">
-      <Pokedex pokemon={playerOneWithLevels} hpMap={hpPercentMap} />
+      <Pokedex
+        pokemon={playerOneWithLevels}
+        hpMap={hpPercentMap}
+        showGrid={showGrid}
+        showOverlay={showOverlay}
+      />
 
       <div className="commence-battle-wrap">
         <button
@@ -309,15 +325,26 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL, regenKey } = {}) {
         >
           COMMENCE BATTLE
         </button>
+        <button
+          className="reroll-battle-btn"
+          onClick={rerollTeams}
+          aria-label="Reroll Teams"
+        >
+          REROLL
+        </button>
+        {battleWinner && (
+          <div className="battle-winner" aria-live="polite">
+            {battleWinner} wins!
+          </div>
+        )}
       </div>
 
-      <Pokedex pokemon={playerTwoWithLevels} hpMap={hpPercentMap} />
-
-      {battleWinner && (
-        <div className="battle-winner" aria-live="polite">
-          {battleWinner} wins!
-        </div>
-      )}
+      <Pokedex
+        pokemon={playerTwoWithLevels}
+        hpMap={hpPercentMap}
+        showGrid={showGrid}
+        showOverlay={showOverlay}
+      />
     </div>
   );
 }

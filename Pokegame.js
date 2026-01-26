@@ -132,6 +132,7 @@ function selectRandomPokemon(availablePool, count) {
 function Pokegame({ pokemon = STARTER_POKEMON_POOL } = {}) {
   const [pokemonPool, setPokemonPool] = React.useState(pokemon);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [localRerollKey, setLocalRerollKey] = React.useState(0);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -192,23 +193,40 @@ function Pokegame({ pokemon = STARTER_POKEMON_POOL } = {}) {
     return <div className="Pokegame">Loading...</div>;
   }
 
-  const playerOneHand = selectRandomPokemon(pokemonPool, 4);
-  const remainingPokemon = pokemonPool.filter(
-    (pokemon) => !playerOneHand.some((selected) => selected.id === pokemon.id),
-  );
-  const playerTwoHand = selectRandomPokemon(remainingPokemon, 4);
-  const playerOneWithLevels = calculateEffectiveLevels(
-    playerOneHand,
-    playerTwoHand,
-  );
-  const playerTwoWithLevels = calculateEffectiveLevels(
-    playerTwoHand,
-    playerOneHand,
-  );
+  const { playerOneWithLevels, playerTwoWithLevels } = React.useMemo(() => {
+    const playerOneHand = selectRandomPokemon(pokemonPool, 4);
+    const remainingPokemon = pokemonPool.filter(
+      (pokemon) =>
+        !playerOneHand.some((selected) => selected.id === pokemon.id),
+    );
+    const playerTwoHand = selectRandomPokemon(remainingPokemon, 4);
+    const playerOneWithLevels = calculateEffectiveLevels(
+      playerOneHand,
+      playerTwoHand,
+    );
+    const playerTwoWithLevels = calculateEffectiveLevels(
+      playerTwoHand,
+      playerOneHand,
+    );
+    return { playerOneWithLevels, playerTwoWithLevels };
+  }, [pokemonPool, localRerollKey]);
+
+  const rerollTeams = React.useCallback(() => {
+    setLocalRerollKey((k) => k + 1);
+  }, []);
 
   return (
     <div className="Pokegame">
       <Pokedex pokemon={playerOneWithLevels} />
+      <div className="commence-battle-wrap">
+        <button
+          className="reroll-battle-btn"
+          onClick={rerollTeams}
+          aria-label="Reroll Teams"
+        >
+          REROLL
+        </button>
+      </div>
       <Pokedex pokemon={playerTwoWithLevels} />
     </div>
   );

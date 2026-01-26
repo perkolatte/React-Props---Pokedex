@@ -200,7 +200,7 @@ function ScreenshotCard({
 }
 
 function Pokedex({ pokemon = TEMP_POKEMON } = {}) {
-  const [showGrid, setShowGrid] = React.useState(true);
+  const [showGrid, setShowGrid] = React.useState(false);
   const [showOverlay, setShowOverlay] = React.useState(true);
   const [showGbcFilter, setShowGbcFilter] = React.useState(false);
 

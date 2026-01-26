@@ -1,6 +1,6 @@
 function App() {
   const [mode, setMode] = React.useState("pokedex");
-  const [showGrid, setShowGrid] = React.useState(true);
+  const [showGrid, setShowGrid] = React.useState(false);
   const [showOverlay, setShowOverlay] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [battleShuffleKey, setBattleShuffleKey] = React.useState(0);

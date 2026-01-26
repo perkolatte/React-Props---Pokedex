@@ -299,12 +299,43 @@ h1 {
   transform: translateY(1px);
 }
 
+.reroll-battle-btn {
+  padding: 10px 16px;
+  background: #fff;
+  color: #000;
+  border: 2px solid #000;
+  border-radius: 6px;
+  font-family: "Pokemon RBYG", monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: none;
+  image-rendering: pixelated;
+  margin-left: 10px;
+}
+.reroll-battle-btn:active {
+  transform: translateY(1px);
+}
+
+.commence-battle-wrap {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin: 0 auto;
+}
+
 .battle-winner {
-  margin-top: 8px;
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
   font-family: "Pokemon RBYG", monospace;
   font-weight: 700;
   color: #000;
   text-transform: uppercase;
+  white-space: nowrap;
+  z-index: 10;
 }
 
 /* Top-right floating control menu */
