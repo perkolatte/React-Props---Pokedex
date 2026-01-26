@@ -1,6 +1,6 @@
 # React Props - Pokedex
 
-Small demo project showcasing React props using a Pokédex-style UI.
+Demo project showcasing React props using the Pokémon stats screens from Pokemon Yellow for the GameBoy Color.
 
 **How to run**
 
@@ -59,80 +59,6 @@ Tip: always use a local server rather than opening `index.html` with `file://` s
 ## Included Pokémon
 
 - All 151 Generation I Pokémon (Bulbasaur #001 through Mew #151) are defined in `components/Pokedex.js`.
-
-## Credits
-
-- Original game: Pokémon (Red/Blue/Green/Yellow) — developed by Game Freak and published by Nintendo. Concept: Satoshi Tajiri; art: Ken Sugimori.
-- Fonts in `fonts/` are fan resources; credit the original font authors listed in the font metadata.
-- API / sprites:
-  - PokeAPI — https://pokeapi.co (used to fetch Pokémon data).
-  - PokeAPI sprites — https://github.com/PokeAPI/sprites (Generation I Yellow sprites are referenced in `components/Pokecard.js`/`components/Pokegame.js`).
-
-If you are the author of any included asset and want a different credit or removal, please open an issue or PR.
-
-Conventional commit example: `refactor(pokecard): add per-character spans and improve font handling`
-
-# React Props - Pokedex
-
-Small demo project showcasing React props using a Pokedex-style UI.
-
-## Overview
-
-This repository contains a small React app (no build step required) that demonstrates component composition and props passing through a Pokédex-style interface.
-
---
-
-##
-
-If you're new to Git/GitHub and just want to run this demo, follow these exact steps:
-
-1. Get the project files from GitHub
-
-- Open the repository page on GitHub in your browser.
-- Click the green **Code** button, then either:
-  - Copy the **HTTPS** URL shown (it looks like `https://github.com/username/repo.git`) to clone via terminal, OR
-  - Click **Download ZIP** to download a zip file of the project, then unzip it on your computer.
-
-2. Open a Terminal (macOS)
-
-- Press Command+Space, type **Terminal**, and press Enter.
-
-3. Clone the repo (if you copied the URL)
-
-```bash
-# replace the URL below with the one you copied from GitHub
-git clone https://github.com/username/repo.git "React Props - Pokedex"
-cd "React Props - Pokedex"
-```
-
-If you downloaded the ZIP, double-click the ZIP to extract it, then `cd` into the extracted folder:
-
-```bash
-cd ~/Downloads/React\ Props\ -\ Pokedex
-```
-
-4. Start a local server (recommended)
-
-- Using Python 3 (built into modern macOS):
-
-```bash
-python3 -m http.server 8000
-```
-
-- Or using Node (if you have Node installed):
-
-```bash
-npx serve .
-```
-
-5. Open the demo in your browser
-
-- Open your browser and go to `http://localhost:8000` (or the URL printed by `npx serve`).
-
-Quick tips:
-
-- If images look missing or sprites fail to load, ensure you used a local server (don't open `index.html` via `file://`).
-- If you need help copying the GitHub URL, click **Code** on the repo page and then the clipboard icon next to the HTTPS URL.
 
 ## Credits
 
