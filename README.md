@@ -2,9 +2,11 @@
 
 Demo project showcasing React props using the Pokémon stats screens from Pokemon Yellow for the GameBoy Color.
 
-This project recreates the Pokémon Yellow stats screen as faithfully as possible. The demo has two modes — **Pokedex** (view individual Pokémon cards and stats) and **Battle** (generate two teams and simulate a simple outcome) — which you can switch using the mode toggle. To compare layouts, use the top-right toggles: a grid overlay that shows a Pokecard-style cell grid, and a screenshot overlay that places the original screen behind the cards. Toggle either on or off to check alignment and sizing.
+The demo has two modes — **Pokedex** (view individual Pokémon cards and stats) and **Battle** (generate two teams and simulate a simple outcome) — which you can switch using the mode toggle.
 
-![Pokedex screenshot](assets/original_gb_screenshot.png)
+This project recreates the Pokémon Yellow stats screen as faithfully as possible. To compare layouts, use the top-right toggles: a grid overlay that shows a Pokecard-style cell grid, and a screenshot overlay that places the original screen behind the cards. Toggle either on or off to check alignment and sizing.
+
+![Pokedex screenshot](assets/pokedex_screenshot.png)
 
 **How to run**
 
