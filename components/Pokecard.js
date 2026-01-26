@@ -11,11 +11,20 @@ function GridText({ children, startCol = 0, row = 0, half = "" }) {
         top: `calc(var(--grid-padding) + ${row} * var(--row-height))`,
       }}
     >
-      {text.split("").map((char, index) => (
-        <span key={index} data-grid-char>
-          {char}
-        </span>
-      ))}
+      {text.split("").map((char, index) => {
+        const cp = char.codePointAt(0);
+        const isGender = cp === 0x2640 || cp === 0x2642; // ♀, ♂
+        return (
+          <span
+            key={index}
+            data-grid-char
+            data-grid-code={cp}
+            className={isGender ? "gender" : undefined}
+          >
+            {char}
+          </span>
+        );
+      })}
     </span>
   );
 }

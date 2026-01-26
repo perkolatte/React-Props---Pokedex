@@ -34,8 +34,26 @@
 }
 @font-face {
   font-family: "Pokemon RBYG";
-  src: url("../fonts/pokemon-red-blue-green-yellow-edition-font.ttf")
-    format("truetype");
+  src:
+    url("../fonts/pokemon-red-blue-green-yellow-edition-font.otf.woff2")
+      format("woff2"),
+    url("../fonts/pokemon-red-blue-green-yellow-edition-font.ttf")
+      format("truetype"),
+    url("../fonts/pokemon-red-blue-green-yellow-edition-font.otf")
+      format("opentype"),
+    url("../fonts/Pokemon Classic.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Explicit face for the classic font file so we can apply it selectively */
+@font-face {
+  font-family: "Pokemon Classic";
+  src:
+    url("../fonts/Pokemon Classic.ttf") format("truetype"),
+    url("../fonts/pokemon-red-blue-green-yellow-edition-font.otf.woff2")
+      format("woff2");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -936,6 +954,19 @@ h1 {
   white-space: nowrap;
   margin-left: var(--text-offset-x);
   margin-top: var(--text-offset-y);
+}
+
+/* Ensure gender symbols use the Pokemon classic font (avoid fallback glyphs) */
+.Pokecard-grid-text [data-grid-char].gender {
+  font-family: "Pokemon Classic", "Pokemon RBYG", monospace;
+  /* Scale gender glyphs down to better match GB rendering and nudge vertically */
+  font-size: 0.5em; /* slightly smaller than surrounding characters */
+  line-height: 1;
+  display: inline-block;
+  transform: translateX(var(--gender-nudge-x, 2px)) translateY(2px)
+    scaleX(calc(var(--font-size-scale-x) / var(--font-size-scale-y)));
+  /* ensure crisp pixel rendering for small glyphs */
+  image-rendering: pixelated;
 }
 
 /* Top/bottom half vertical adjustments */
